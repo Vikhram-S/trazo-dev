@@ -1,0 +1,34 @@
+﻿# Trazo — default configuration
+# Copy to ~/.trazo/config.toml or ./Trazo.toml to customize
+
+[storage]
+# Path to the SQLite trace database
+# db_path = "~/.trazo/traces.db"
+
+# Maximum number of runs to keep (older runs are pruned automatically)
+# max_runs = 500
+
+[tracing]
+# Set to false to disable tracing entirely (e.g. in production)
+enabled = true
+
+# Capture function inputs in @tz.trace (disable for sensitive data)
+capture_inputs = true
+
+# Capture function return values in @tz.trace
+capture_outputs = true
+
+# Maximum string length to store per field (longer values are truncated)
+max_field_length = 4096
+
+[integrations]
+# Auto-instrument the OpenAI SDK on tz.init()
+# auto_instrument_openai = false
+
+# Auto-instrument the Anthropic SDK on tz.init()
+# auto_instrument_anthropic = false
+
+[ui]
+# Default host and port for trazo ui
+host = "127.0.0.1"
+port = 7432

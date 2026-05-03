@@ -1,0 +1,504 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trazo — LLM Execution Tracer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #1c2230;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --muted:    #8b949e;
+      --accent:   #58a6ff;
+      --accent2:  #bc8cff;
+      --green:    #3fb950;
+      --red:      #f85149;
+      --yellow:   #e3b341;
+      --cyan:     #39d0d8;
+      --glow:     rgba(88,166,255,.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .main { flex: 1; padding: 2rem 2.5rem; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    .logo {
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 2rem;
+    }
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .logo-text { font-weight: 700; font-size: 1rem; }
+    .logo-text span { color: var(--accent); }
+
+    .nav-section { margin-bottom: 1.5rem; }
+    .nav-label {
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--muted);
+      margin-bottom: .5rem;
+      padding: 0 .5rem;
+    }
+    .nav-link {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .45rem .75rem;
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .875rem;
+      transition: all .15s;
+      cursor: pointer;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: var(--glow);
+      color: var(--accent);
+    }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .9rem 1.4rem;
+      flex: 1; min-width: 130px;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .stat-label {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      margin-bottom: .3rem;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Page title ── */
+    .page-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .page-title .badge-count {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: .1rem .6rem;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* ── Run table ── */
+    .run-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; }
+    .run-table thead th {
+      padding: .5rem 1rem;
+      text-align: left;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .run-row {
+      background: var(--surface);
+      transition: background .15s, transform .15s;
+      cursor: pointer;
+    }
+    .run-row:hover { background: var(--surface2); transform: translateX(2px); }
+    .run-row td {
+      padding: .75rem 1rem;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .run-row td:first-child {
+      border-left: 1px solid var(--border);
+      border-radius: 8px 0 0 8px;
+    }
+    .run-row td:last-child {
+      border-right: 1px solid var(--border);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      font-size: .7rem; font-weight: 600;
+      padding: .2rem .55rem;
+      border-radius: 4px;
+    }
+    .badge-ok      { background: #1a4d2e; color: var(--green); }
+    .badge-error   { background: #4d1a1a; color: var(--red); }
+    .badge-running { background: #4d3e1a; color: var(--yellow); }
+    .badge-pending { background: #2a2a2a; color: var(--muted); }
+
+    /* ── Run name / ID ── */
+    .run-name { font-weight: 600; font-size: .9rem; }
+    .run-id   { font-family: 'JetBrains Mono', monospace; font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+
+    /* ── Mono values ── */
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .text-muted { color: var(--muted); }
+    .text-accent { color: var(--accent); }
+    .text-green  { color: var(--green); }
+    .text-red    { color: var(--red); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h2 { color: var(--text); margin-bottom: .5rem; }
+    .empty-cta {
+      display: inline-block;
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      padding: .6rem 1.4rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: .875rem;
+      text-decoration: none;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Diff panel ── */
+    .diff-panel {
+      position: fixed; right: 0; top: 0; bottom: 0;
+      width: 420px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      padding: 1.5rem;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.4,0,.2,1);
+      z-index: 100;
+      overflow-y: auto;
+    }
+    .diff-panel.open { transform: translateX(0); }
+    .diff-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer;
+      transition: color .15s;
+    }
+    .diff-close:hover { color: var(--text); }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .toolbar input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: .5rem .9rem;
+      font-size: .875rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .toolbar input:focus { border-color: var(--accent); }
+    .btn {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: .5rem 1rem;
+      font-weight: 600;
+      font-size: .8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity .15s;
+    }
+    .btn:hover { opacity: .9; }
+    .btn-ghost {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🧵</div>
+      <div class="logo-text"><span>Tra</span>zo</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Traces</div>
+      <a class="nav-link active" href="/">📋 Runs</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Tools</div>
+      <a class="nav-link" href="#" id="diff-trigger">🔀 Diff runs</a>
+    </div>
+    <div class="nav-section" style="margin-top:auto; padding-top:2rem;">
+      <div class="nav-label">Info</div>
+      <a class="nav-link" href="https://github.com/trazo-dev/trazo" target="_blank">📖 Docs</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Stats -->
+    <div class="stats-bar" id="stats-bar">
+      <div class="stat-card"><div class="stat-label">Total Runs</div><div class="stat-value" id="stat-runs">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value" id="stat-cost">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Tokens</div><div class="stat-value" id="stat-tokens">—</div></div>
+      <div class="stat-card"><div class="stat-label">Database</div><div class="stat-value" style="font-size:.8rem;padding-top:.3rem" id="stat-db">—</div></div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input id="search" type="text" placeholder="🔍 Filter runs by name…"/>
+      <button class="btn btn-ghost" onclick="loadRuns()">↺ Refresh</button>
+    </div>
+
+    <!-- Page title -->
+    <div class="page-title">
+      Recent Runs
+      <span class="badge-count" id="run-count">…</span>
+    </div>
+
+    <!-- Table -->
+    <div id="run-table-container">
+      <table class="run-table">
+        <thead>
+          <tr>
+            <th>Run</th>
+            <th>Status</th>
+            <th style="text-align:right">Spans</th>
+            <th style="text-align:right">Tokens</th>
+            <th style="text-align:right">Cost (USD)</th>
+            <th style="text-align:right">Duration</th>
+            <th>Started</th>
+          </tr>
+        </thead>
+        <tbody id="run-tbody"></tbody>
+      </table>
+    </div>
+
+    <div id="empty" style="display:none">
+      <div class="empty-state">
+        <div class="icon">🧵</div>
+        <h2>No runs yet</h2>
+        <p>Instrument your code with <code>@tz.trace</code> and run your pipeline.</p>
+        <a class="empty-cta" href="https://github.com/trazo-dev/trazo" target="_blank">View Docs →</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Diff Panel -->
+<div class="diff-panel" id="diff-panel">
+  <button class="diff-close" id="diff-close">✕</button>
+  <h2 style="margin-bottom:1rem;font-size:1rem">🔀 Compare Runs</h2>
+  <div style="margin-bottom:.75rem">
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Run A (baseline)</div>
+    <select id="diff-a" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem;border-radius:6px;font-family:inherit"></select>
+  </div>
+  <div style="margin-bottom:1rem">
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem">Run B (new)</div>
+    <select id="diff-b" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:.5rem;border-radius:6px;font-family:inherit"></select>
+  </div>
+  <button class="btn" style="width:100%" onclick="runDiff()">Compare →</button>
+  <div id="diff-result" style="margin-top:1.5rem"></div>
+</div>
+
+<script>
+let allRuns = [];
+
+async function loadStats() {
+  const r = await fetch('/api/stats');
+  const d = await r.json();
+  document.getElementById('stat-runs').textContent = d.run_count.toLocaleString();
+  document.getElementById('stat-cost').textContent = '$' + d.total_cost_usd.toFixed(4);
+  document.getElementById('stat-tokens').textContent = d.total_tokens.toLocaleString();
+  const db = d.db_path.split(/[/\\]/).slice(-2).join('/');
+  document.getElementById('stat-db').textContent = db;
+}
+
+async function loadRuns() {
+  const r = await fetch('/api/runs?limit=100');
+  allRuns = await r.json();
+  renderRuns(allRuns);
+  populateDiffSelects(allRuns);
+  document.getElementById('run-count').textContent = allRuns.length;
+}
+
+function renderRuns(runs) {
+  const tbody = document.getElementById('run-tbody');
+  const empty = document.getElementById('empty');
+  const table = document.getElementById('run-table-container');
+  if (!runs.length) {
+    table.style.display = 'none';
+    empty.style.display = 'block';
+    return;
+  }
+  table.style.display = '';
+  empty.style.display = 'none';
+  tbody.innerHTML = runs.map(r => {
+    const dur = r.ended_at ? ((r.ended_at - r.started_at)*1000).toFixed(0)+'ms' : '—';
+    const cost = r.total_cost_usd ? '$'+r.total_cost_usd.toFixed(5) : '—';
+    const tokens = (r.total_tokens_in + r.total_tokens_out).toLocaleString();
+    const started = new Date(r.started_at * 1000).toLocaleString();
+    const badge = statusBadge(r.status);
+    return `<tr class="run-row" onclick="window.location='/run/${r.run_id}'">
+      <td>
+        <div class="run-name">${esc(r.name)}</div>
+        <div class="run-id">${r.run_id.substring(0,8)}…</div>
+      </td>
+      <td>${badge}</td>
+      <td style="text-align:right" class="mono">${r.span_count}</td>
+      <td style="text-align:right" class="mono">${tokens}</td>
+      <td style="text-align:right" class="mono text-green">${cost}</td>
+      <td style="text-align:right" class="mono text-muted">${dur}</td>
+      <td class="text-muted" style="font-size:.8rem">${started}</td>
+    </tr>`;
+  }).join('');
+}
+
+function statusBadge(s) {
+  const map = {ok:'badge-ok',error:'badge-error',running:'badge-running',pending:'badge-pending'};
+  const icons = {ok:'✓',error:'✗',running:'⟳',pending:'○'};
+  return `<span class="badge ${map[s]||''}">${icons[s]||''}${s}</span>`;
+}
+
+function esc(t) { return (t||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// Search filter
+document.getElementById('search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  renderRuns(allRuns.filter(r => r.name.toLowerCase().includes(q)));
+});
+
+// Diff panel
+document.getElementById('diff-trigger').addEventListener('click', e => {
+  e.preventDefault();
+  document.getElementById('diff-panel').classList.add('open');
+});
+document.getElementById('diff-close').addEventListener('click', () => {
+  document.getElementById('diff-panel').classList.remove('open');
+});
+
+function populateDiffSelects(runs) {
+  const opts = runs.map(r => `<option value="${r.run_id}">${esc(r.name)} (${r.run_id.substring(0,6)}…)</option>`).join('');
+  document.getElementById('diff-a').innerHTML = opts;
+  document.getElementById('diff-b').innerHTML = opts;
+  if (runs.length > 1) document.getElementById('diff-b').selectedIndex = 1;
+}
+
+async function runDiff() {
+  const a = document.getElementById('diff-a').value;
+  const b = document.getElementById('diff-b').value;
+  const res = document.getElementById('diff-result');
+  if (a === b) { res.innerHTML = '<p style="color:var(--yellow)">Select two different runs.</p>'; return; }
+  res.innerHTML = '<p style="color:var(--muted)">Computing diff…</p>';
+  const r = await fetch(`/api/diff/${a}/${b}`);
+  const d = await r.json();
+  const sim = (d.overall_similarity * 100).toFixed(1);
+  const simColor = sim >= 97 ? 'var(--green)' : sim >= 65 ? 'var(--yellow)' : 'var(--red)';
+  const changed = d.span_diffs.filter(s => s.kind !== 'identical');
+  res.innerHTML = `
+    <div style="margin-bottom:1rem">
+      <div style="font-size:.75rem;color:var(--muted)">Overall Similarity</div>
+      <div style="font-size:2rem;font-weight:700;color:${simColor};font-family:'JetBrains Mono',monospace">${sim}%</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:1.5rem">
+      ${deltaCard('Cost Δ', d.cost_delta_usd >= 0 ? '+$'+d.cost_delta_usd.toFixed(5) : '-$'+Math.abs(d.cost_delta_usd).toFixed(5), d.cost_delta_usd)}
+      ${deltaCard('Token Δ', (d.token_delta >= 0 ? '+' : '')+d.token_delta.toLocaleString(), d.token_delta)}
+      ${deltaCard('Latency Δ', (d.latency_delta_ms >= 0 ? '+' : '')+d.latency_delta_ms.toFixed(0)+'ms', d.latency_delta_ms)}
+    </div>
+    <div style="font-size:.75rem;color:var(--muted);margin-bottom:.5rem">${changed.length} CHANGED SPANS</div>
+    ${changed.slice(0,8).map(s => spanDiffRow(s)).join('')}
+  `;
+}
+
+function deltaCard(label, val, raw) {
+  const color = raw > 0 ? 'var(--red)' : raw < 0 ? 'var(--green)' : 'var(--muted)';
+  return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem .75rem">
+    <div style="font-size:.65rem;color:var(--muted)">${label}</div>
+    <div style="font-weight:600;color:${color};font-family:'JetBrains Mono',monospace;font-size:.8rem">${val}</div>
+  </div>`;
+}
+
+function spanDiffRow(s) {
+  const kindColor = {identical:'var(--green)',similar:'var(--yellow)',diverged:'var(--red)',added:'var(--cyan)',removed:'var(--muted)'}[s.kind]||'var(--muted)';
+  const sim = (s.similarity_score*100).toFixed(0)+'%';
+  return `<div style="border:1px solid var(--border);border-radius:6px;padding:.5rem .75rem;margin-bottom:.4rem">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.8rem;font-weight:500">${esc(s.span_name)}</span>
+      <span style="font-size:.7rem;color:${kindColor};font-weight:600">${s.kind} · ${sim}</span>
+    </div>
+  </div>`;
+}
+
+// Init
+loadStats();
+loadRuns();
+setInterval(loadRuns, 5000); // Auto-refresh every 5s
+</script>
+</body>
+</html>

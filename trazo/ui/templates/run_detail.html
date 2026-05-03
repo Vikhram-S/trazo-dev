@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trazo — Run Detail</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      --bg:#0d1117;--surface:#161b22;--surface2:#1c2230;--border:#30363d;
+      --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--accent2:#bc8cff;
+      --green:#3fb950;--red:#f85149;--yellow:#e3b341;--cyan:#39d0d8;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.6}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:1.5rem 1rem}
+    .main{flex:1;padding:2rem 2.5rem;overflow:hidden}
+    .logo{display:flex;align-items:center;gap:.6rem;margin-bottom:2rem}
+    .logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+    .logo-text{font-weight:700;font-size:1rem}
+    .logo-text span{color:var(--accent)}
+    .nav-link{display:flex;align-items:center;gap:.6rem;padding:.45rem .75rem;border-radius:6px;color:var(--muted);text-decoration:none;font-size:.875rem;transition:all .15s}
+    .nav-link:hover{background:rgba(88,166,255,.1);color:var(--accent)}
+    .breadcrumb{font-size:.8rem;color:var(--muted);margin-bottom:1.5rem}
+    .breadcrumb a{color:var(--accent);text-decoration:none}
+    .run-header{margin-bottom:2rem}
+    .run-title{font-size:1.6rem;font-weight:700;margin-bottom:.5rem}
+    .run-meta{display:flex;gap:1.5rem;flex-wrap:wrap;color:var(--muted);font-size:.8rem}
+    .run-meta span{display:flex;align-items:center;gap:.3rem}
+    .badge{display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:600;padding:.2rem .55rem;border-radius:4px}
+    .badge-ok{background:#1a4d2e;color:var(--green)}
+    .badge-error{background:#4d1a1a;color:var(--red)}
+    .badge-running{background:#4d3e1a;color:var(--yellow)}
+    .stats-row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1.4rem;flex:1;min-width:120px}
+    .stat-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.3rem}
+    .stat-value{font-size:1.3rem;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+    .tabs{display:flex;gap:.25rem;margin-bottom:1.5rem;border-bottom:1px solid var(--border);padding-bottom:0}
+    .tab{padding:.6rem 1rem;cursor:pointer;font-size:.875rem;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+    .tab:hover{color:var(--text)}
+    .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+
+    /* ── DAG visualization ── */
+    #dag-canvas{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+    .dag-node{cursor:pointer}
+    .dag-node rect{rx:8;stroke-width:1.5;transition:filter .2s}
+    .dag-node:hover rect{filter:brightness(1.3)}
+    .dag-node text{fill:var(--text);font-family:'Inter',sans-serif;font-size:11px;pointer-events:none}
+    .dag-link{stroke:var(--border);stroke-width:1.5;fill:none}
+    .dag-link-ok{stroke:var(--green)}
+
+    /* ── Span inspector ── */
+    .span-list{display:flex;flex-direction:column;gap:.5rem}
+    .span-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+    .span-header{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;cursor:pointer;transition:background .15s}
+    .span-header:hover{background:var(--surface2)}
+    .span-name-col{flex:1;font-weight:500}
+    .span-metrics{display:flex;gap:1rem;font-size:.75rem;color:var(--muted);font-family:'JetBrains Mono',monospace}
+    .span-body{display:none;border-top:1px solid var(--border);padding:1rem}
+    .span-body.open{display:block}
+    .io-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .io-box label{font-size:.65rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:block;margin-bottom:.3rem}
+    pre.io-pre{background:#0d1117;border:1px solid var(--border);border-radius:6px;padding:.75rem;font-size:.72rem;font-family:'JetBrains Mono',monospace;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;color:var(--cyan)}
+    .error-box{background:#2d1515;border:1px solid #f85149;border-radius:6px;padding:.75rem;font-size:.75rem;color:var(--red);font-family:'JetBrains Mono',monospace;white-space:pre-wrap;margin-top:.75rem}
+    ::-webkit-scrollbar{width:6px;height:6px}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    ::-webkit-scrollbar-track{background:transparent}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🧵</div>
+      <div class="logo-text"><span>Tra</span>zo</div>
+    </div>
+    <a class="nav-link" href="/">← All Runs</a>
+  </aside>
+
+  <main class="main">
+    <div class="breadcrumb"><a href="/">Runs</a> / {{ run.name }}</div>
+
+    <div class="run-header">
+      <div class="run-title">
+        {{ run.name }}
+        <span class="badge badge-{{ run.status.value }}" style="font-size:.8rem;vertical-align:middle;margin-left:.5rem">
+          {{ run.status.value }}
+        </span>
+      </div>
+      <div class="run-meta">
+        <span>🆔 {{ run.run_id[:12] }}…</span>
+        <span>🕐 {{ run.started_at | int }}</span>
+        {% if run.duration_ms %}<span>⏱ {{ "%.0f"|format(run.duration_ms) }}ms</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Spans</div><div class="stat-value">{{ run.span_count }}</div></div>
+      <div class="stat-card"><div class="stat-label">Tokens In</div><div class="stat-value">{{ "{:,}".format(run.total_tokens_in) }}</div></div>
+      <div class="stat-card"><div class="stat-label">Tokens Out</div><div class="stat-value">{{ "{:,}".format(run.total_tokens_out) }}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Cost</div><div class="stat-value">${{ "%.5f"|format(run.total_cost_usd) }}</div></div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="dag">🗺 Execution DAG</div>
+      <div class="tab" data-tab="spans">📋 Spans</div>
+    </div>
+
+    <!-- DAG Tab -->
+    <div class="tab-panel active" id="tab-dag">
+      <div id="dag-canvas"></div>
+    </div>
+
+    <!-- Spans Tab -->
+    <div class="tab-panel" id="tab-spans">
+      <div class="span-list" id="span-list"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ── Tabs ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Data ──────────────────────────────────────────────────────────────
+const runId = "{{ run.run_id }}";
+
+fetch(`/api/runs/${runId}`).then(r => r.json()).then(data => {
+  renderSpans(data.spans);
+  renderDAG(data.spans);
+});
+
+// ── Span List ─────────────────────────────────────────────────────────
+function renderSpans(spans) {
+  const container = document.getElementById('span-list');
+  container.innerHTML = spans.map((s, i) => {
+    const dur = s.ended_at ? ((s.ended_at-s.started_at)*1000).toFixed(1)+'ms' : '—';
+    const tokens = (s.tokens_in||0)+(s.tokens_out||0);
+    const indent = s.parent_span_id ? 'margin-left:1.5rem' : '';
+    const statusColor = {ok:'var(--green)',error:'var(--red)',running:'var(--yellow)'}[s.status]||'var(--muted)';
+    return `
+    <div class="span-card" style="${indent}">
+      <div class="span-header" onclick="toggleSpan(${i})">
+        <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};flex-shrink:0"></span>
+        <span class="span-name-col">${esc(s.name)}</span>
+        ${s.model ? `<code style="font-size:.72rem;color:var(--accent);background:rgba(88,166,255,.08);padding:.1rem .4rem;border-radius:4px">${esc(s.model)}</code>` : ''}
+        <div class="span-metrics">
+          <span>⏱ ${dur}</span>
+          ${tokens ? `<span>🔤 ${tokens.toLocaleString()}</span>` : ''}
+          ${s.cost_usd ? `<span>💰 $${s.cost_usd.toFixed(5)}</span>` : ''}
+        </div>
+        <span style="color:var(--muted);font-size:.7rem">${s.span_id.substring(0,8)}…</span>
+      </div>
+      <div class="span-body" id="sb-${i}">
+        <div class="io-grid">
+          <div class="io-box">
+            <label>Inputs</label>
+            <pre class="io-pre">${esc(JSON.stringify(s.inputs, null, 2).substring(0, 2000))}</pre>
+          </div>
+          <div class="io-box">
+            <label>Outputs</label>
+            <pre class="io-pre">${s.outputs ? esc(JSON.stringify(s.outputs, null, 2).substring(0, 2000)) : '<dim>no output</dim>'}</pre>
+          </div>
+        </div>
+        ${s.error ? `<div class="error-box">${esc(s.error.substring(0, 1000))}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSpan(i) {
+  const body = document.getElementById('sb-'+i);
+  body.classList.toggle('open');
+}
+
+// ── DAG ───────────────────────────────────────────────────────────────
+function renderDAG(spans) {
+  const W = document.getElementById('dag-canvas').clientWidth || 800;
+  const nodeH = 48, nodeW = 220, marginY = 20, marginX = 40;
+
+  // Compute depth levels
+  const depthMap = {};
+  const spanMap = {};
+  spans.forEach(s => { spanMap[s.span_id] = s; });
+
+  function getDepth(s) {
+    if (depthMap[s.span_id] !== undefined) return depthMap[s.span_id];
+    if (!s.parent_span_id || !spanMap[s.parent_span_id]) {
+      depthMap[s.span_id] = 0; return 0;
+    }
+    const d = getDepth(spanMap[s.parent_span_id]) + 1;
+    depthMap[s.span_id] = d; return d;
+  }
+  spans.forEach(s => getDepth(s));
+
+  // Group by depth
+  const byDepth = {};
+  spans.forEach(s => {
+    const d = depthMap[s.span_id];
+    (byDepth[d] = byDepth[d] || []).push(s);
+  });
+
+  const maxDepth = Math.max(...Object.keys(byDepth).map(Number));
+  const posMap = {};
+  Object.entries(byDepth).forEach(([depth, group]) => {
+    const d = Number(depth);
+    group.forEach((s, i) => {
+      const totalH = group.length * (nodeH + marginY);
+      const startY = (400 - totalH) / 2 + i * (nodeH + marginY);
+      posMap[s.span_id] = {
+        x: marginX + d * (nodeW + marginX),
+        y: Math.max(20, startY),
+      };
+    });
+  });
+
+  const svgW = marginX + (maxDepth + 1) * (nodeW + marginX) + marginX;
+  const svgH = Math.max(400, ...Object.values(posMap).map(p => p.y + nodeH + 40));
+
+  const svg = d3.select('#dag-canvas')
+    .append('svg')
+    .attr('width', '100%')
+    .attr('viewBox', `0 0 ${svgW} ${svgH}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  // Edges
+  spans.forEach(s => {
+    if (!s.parent_span_id || !posMap[s.parent_span_id] || !posMap[s.span_id]) return;
+    const src = posMap[s.parent_span_id];
+    const dst = posMap[s.span_id];
+    svg.append('path')
+      .attr('class', 'dag-link')
+      .attr('d', `M${src.x+nodeW},${src.y+nodeH/2} C${src.x+nodeW+40},${src.y+nodeH/2} ${dst.x-40},${dst.y+nodeH/2} ${dst.x},${dst.y+nodeH/2}`);
+  });
+
+  // Nodes
+  const statusFill = {ok:'#1a3d2a',error:'#3d1a1a',running:'#3d371a',pending:'#1e2430'};
+  const statusStroke = {ok:'#3fb950',error:'#f85149',running:'#e3b341',pending:'#30363d'};
+
+  const nodes = svg.selectAll('.dag-node')
+    .data(spans.filter(s => posMap[s.span_id]))
+    .enter().append('g')
+    .attr('class', 'dag-node')
+    .attr('transform', s => `translate(${posMap[s.span_id].x},${posMap[s.span_id].y})`);
+
+  nodes.append('rect')
+    .attr('width', nodeW)
+    .attr('height', nodeH)
+    .attr('rx', 8)
+    .attr('fill', s => statusFill[s.status] || statusFill.pending)
+    .attr('stroke', s => statusStroke[s.status] || statusStroke.pending);
+
+  // Span name (truncated)
+  nodes.append('text')
+    .attr('x', 12).attr('y', 18)
+    .attr('font-size', 11).attr('font-weight', 600)
+    .text(s => s.name.length > 26 ? s.name.substring(0,24)+'…' : s.name);
+
+  // Metrics line
+  nodes.append('text')
+    .attr('x', 12).attr('y', 34)
+    .attr('font-size', 10).attr('fill', '#8b949e')
+    .text(s => {
+      const dur = s.ended_at ? ((s.ended_at-s.started_at)*1000).toFixed(0)+'ms' : '';
+      const tok = (s.tokens_in||0)+(s.tokens_out||0);
+      const parts = [dur, tok ? tok.toLocaleString()+' tok' : '', s.cost_usd ? '$'+s.cost_usd.toFixed(4) : ''].filter(Boolean);
+      return parts.join('  ·  ');
+    });
+}
+
+function esc(t) { return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
