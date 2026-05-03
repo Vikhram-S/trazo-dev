@@ -1,4 +1,4 @@
-﻿"""
+"""
 Trazo.replayer
 ~~~~~~~~~~~~~~~~~~
 Time-travel replay engine.
@@ -9,15 +9,15 @@ exact same inputs. Useful for:
 - A/B testing prompts by replaying a span with modified inputs
 - Cost estimation by replaying with cheaper models
 """
+
 from __future__ import annotations
 
-import importlib
 import inspect
 import sys
 import time
 from typing import Any
 
-from .models import ReplayRequest, Span, SpanStatus
+from .models import ReplayRequest, Span
 from .storage import StorageEngine
 from .tracer import run as pw_run
 from .tracer import span as pw_span
@@ -132,9 +132,7 @@ class Replayer:
                     # Invoke with keyword arguments from stored inputs
                     sig = inspect.signature(fn)
                     valid_params = set(sig.parameters.keys())
-                    call_kwargs = {
-                        k: v for k, v in inputs.items() if k in valid_params
-                    }
+                    call_kwargs = {k: v for k, v in inputs.items() if k in valid_params}
                     result = fn(**call_kwargs)
                     s.set_output({"return": result})
         except Exception as exc:

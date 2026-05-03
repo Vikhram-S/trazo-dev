@@ -1,9 +1,10 @@
-﻿"""
+"""
 Trazo.models
 ~~~~~~~~~~~~~~~~
 Core data models for Trazo's execution tracing system.
 All models are Pydantic v2 compatible with full type safety.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -12,7 +13,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-
 # ---------------------------------------------------------------------------
 # Enums
 # ---------------------------------------------------------------------------
@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class SpanStatus(str, Enum):
     """Lifecycle status of an execution span."""
+
     PENDING = "pending"
     RUNNING = "running"
     OK = "ok"
@@ -28,6 +29,7 @@ class SpanStatus(str, Enum):
 
 class DiffKind(str, Enum):
     """Category of difference detected in a semantic diff."""
+
     IDENTICAL = "identical"
     SIMILAR = "similar"
     DIVERGED = "diverged"
@@ -45,6 +47,7 @@ class Span(BaseModel):
     A Span represents a single instrumented function call within a pipeline run.
     Spans form a tree via parent_span_id, allowing DAG reconstruction.
     """
+
     span_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     run_id: str
     name: str
@@ -109,6 +112,7 @@ class Run(BaseModel):
     A Run represents one top-level execution of a traced pipeline.
     Multiple Spans belong to a single Run.
     """
+
     run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "unnamed"
     started_at: float
@@ -142,6 +146,7 @@ class Run(BaseModel):
 
 class SpanDiff(BaseModel):
     """Semantic difference between two corresponding spans across runs."""
+
     span_name: str
     kind: DiffKind
     similarity_score: float  # 0.0 (totally different) to 1.0 (identical)
@@ -162,6 +167,7 @@ class SpanDiff(BaseModel):
 
 class RunDiff(BaseModel):
     """Complete semantic diff between two pipeline runs."""
+
     run_a_id: str
     run_b_id: str
     run_a_name: str
@@ -192,6 +198,7 @@ class RunDiff(BaseModel):
 
 class ReplayRequest(BaseModel):
     """Request to re-execute a specific span using its original inputs."""
+
     source_run_id: str
     source_span_id: str
     override_inputs: dict[str, Any] | None = None  # Optional input overrides

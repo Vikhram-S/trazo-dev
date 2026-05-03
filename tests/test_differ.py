@@ -1,8 +1,9 @@
-﻿"""
+"""
 tests/test_differ.py
 ~~~~~~~~~~~~~~~~~~~~
 Unit tests for the semantic diff engine.
 """
+
 from __future__ import annotations
 
 import time
@@ -75,6 +76,7 @@ def storage(tmp_path: Path):
 
 def test_tfidf_vector_unit_length():
     import math
+
     vec = _tfidf_vector("hello world this is a test")
     norm = math.sqrt(sum(v * v for v in vec.values()))
     assert abs(norm - 1.0) < 1e-6
@@ -102,7 +104,9 @@ def test_compute_similarity_identical_text():
 
 def test_compute_similarity_different_text():
     s1 = make_span("r1", "step", outputs={"content": "Python is great for data science"})
-    s2 = make_span("r2", "step", outputs={"content": "Rust enables memory-safe systems programming"})
+    s2 = make_span(
+        "r2", "step", outputs={"content": "Rust enables memory-safe systems programming"}
+    )
     sim = _compute_similarity(s1, s2)
     assert sim < 0.7
 
@@ -133,10 +137,18 @@ def test_diff_diverged_runs(storage):
     storage.upsert_run(run_a)
     storage.upsert_run(run_b)
 
-    storage.upsert_span(make_span(run_a.run_id, "step_one",
-        outputs={"content": "Python excels at rapid prototyping"}))
-    storage.upsert_span(make_span(run_b.run_id, "step_one",
-        outputs={"content": "Quantum entanglement allows non-local correlations in physics"}))
+    storage.upsert_span(
+        make_span(
+            run_a.run_id, "step_one", outputs={"content": "Python excels at rapid prototyping"}
+        )
+    )
+    storage.upsert_span(
+        make_span(
+            run_b.run_id,
+            "step_one",
+            outputs={"content": "Quantum entanglement allows non-local correlations in physics"},
+        )
+    )
 
     result = diff_runs(run_a, run_b, storage)
     assert result.overall_similarity < 0.7

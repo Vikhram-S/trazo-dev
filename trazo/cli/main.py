@@ -1,12 +1,19 @@
-﻿"""
+"""
 Trazo.cli.main
 ~~~~~~~~~~~~~~~~~~
 Click-based CLI entrypoint for the `pw` command.
 """
+
 from __future__ import annotations
 
 import click
 from rich.console import Console
+
+from .commands.clean import clean_cmd
+from .commands.diff import diff_cmd
+from .commands.export import export_cmd
+from .commands.replay import replay_cmd
+from .commands.view import view_cmd
 
 console = Console()
 
@@ -27,13 +34,7 @@ def cli() -> None:
     """
 
 
-# Import sub-commands
-from .commands.view import view_cmd
-from .commands.diff import diff_cmd
-from .commands.replay import replay_cmd
-from .commands.export import export_cmd
-from .commands.clean import clean_cmd
-
+# CLI registration
 cli.add_command(view_cmd, name="view")
 cli.add_command(diff_cmd, name="diff")
 cli.add_command(replay_cmd, name="replay")
@@ -48,6 +49,7 @@ cli.add_command(clean_cmd, name="clean")
 def ui_cmd(host: str, port: int, db: str | None) -> None:
     """Launch the Trazo web UI in your browser."""
     from ..ui.app import start_server
+
     start_server(host=host, port=port, db_path=db)
 
 

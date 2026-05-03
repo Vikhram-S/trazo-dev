@@ -1,4 +1,4 @@
-﻿"""
+"""
 Trazo.differ
 ~~~~~~~~~~~~~~~~
 Semantic diff engine for comparing two pipeline runs.
@@ -12,14 +12,13 @@ Strategy:
 No ML model required — uses lightweight TF-IDF-style character n-gram hashing
 by default. If sentence-transformers is available, uses real semantic embeddings.
 """
+
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import time
 from collections import Counter, defaultdict
-from typing import Any
 
 from .models import DiffKind, Run, RunDiff, Span, SpanDiff
 from .storage import StorageEngine
@@ -102,7 +101,7 @@ def _cosine_similarity_dense(a: list[float], b: list[float]) -> float:
     """Cosine similarity between two dense vectors."""
     if len(a) != len(b):
         return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
     if norm_a == 0 or norm_b == 0:

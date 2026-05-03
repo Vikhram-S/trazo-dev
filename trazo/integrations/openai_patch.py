@@ -1,4 +1,4 @@
-﻿"""
+"""
 Trazo.integrations.openai_patch
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Auto-instrumentation for the OpenAI Python SDK (v1.x+).
@@ -10,6 +10,7 @@ Usage:
     import trazo as tz
     tz.instrument_openai()  # Call once at startup
 """
+
 from __future__ import annotations
 
 import time
@@ -25,14 +26,14 @@ from ..tracer import _current_run, _current_span
 # ---------------------------------------------------------------------------
 _OPENAI_PRICING: dict[str, tuple[float, float]] = {
     # (input_per_1k, output_per_1k)
-    "gpt-4o":                  (0.0025,  0.010),
-    "gpt-4o-mini":             (0.000150, 0.000600),
-    "gpt-4-turbo":             (0.010,   0.030),
-    "gpt-4":                   (0.030,   0.060),
-    "gpt-3.5-turbo":           (0.0005,  0.0015),
-    "o1":                      (0.015,   0.060),
-    "o1-mini":                 (0.003,   0.012),
-    "o3-mini":                 (0.001,   0.004),
+    "gpt-4o": (0.0025, 0.010),
+    "gpt-4o-mini": (0.000150, 0.000600),
+    "gpt-4-turbo": (0.010, 0.030),
+    "gpt-4": (0.030, 0.060),
+    "gpt-3.5-turbo": (0.0005, 0.0015),
+    "o1": (0.015, 0.060),
+    "o1-mini": (0.003, 0.012),
+    "o3-mini": (0.001, 0.004),
 }
 
 
@@ -63,7 +64,7 @@ def patch_openai() -> bool:
     Returns True if patching succeeded, False if openai is not installed.
     """
     try:
-        import openai
+        import openai  # noqa: F401
         from openai.resources.chat import completions as chat_completions_mod
     except ImportError:
         return False
@@ -185,7 +186,9 @@ def _serialize_messages(messages: list[Any]) -> list[dict]:
         if isinstance(m, dict):
             result.append({k: str(v)[:2000] for k, v in m.items()})
         else:
-            result.append({"role": getattr(m, "role", "?"), "content": str(getattr(m, "content", ""))[:2000]})
+            result.append(
+                {"role": getattr(m, "role", "?"), "content": str(getattr(m, "content", ""))[:2000]}
+            )
     return result
 
 

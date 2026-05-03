@@ -1,4 +1,4 @@
-﻿"""
+"""
 Trazo.collector
 ~~~~~~~~~~~~~~~~~~~
 Global TraceCollector singleton — the central hub for all span events.
@@ -8,6 +8,7 @@ Design goals:
 - Non-blocking: agents should never wait for storage I/O
 - Pluggable: supports multiple storage backends
 """
+
 from __future__ import annotations
 
 import atexit
@@ -16,7 +17,7 @@ import threading
 import time
 from typing import Any
 
-from .models import Run, Span, SpanStatus
+from .models import Run, Span
 from .storage import StorageEngine
 
 # Sentinel to signal the flush worker to stop
@@ -90,7 +91,7 @@ class TraceCollector:
                     self._storage.upsert_run(payload)
                 elif event_type == "run_finish":
                     self._storage.refresh_run_aggregates(payload)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass  # Never crash the flush worker
 
     def _shutdown(self) -> None:

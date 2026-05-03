@@ -1,11 +1,11 @@
-﻿"""
+"""
 tests/test_storage.py
 ~~~~~~~~~~~~~~~~~~~~~
 Unit tests for the SQLite storage engine.
 """
+
 from __future__ import annotations
 
-import json
 import time
 from pathlib import Path
 
@@ -22,14 +22,20 @@ def storage(tmp_path: Path) -> StorageEngine:
 
 def make_run(**kwargs) -> Run:
     t = time.time()
-    defaults = dict(name="test_run", started_at=t, ended_at=t + 1.0, status=SpanStatus.OK)
+    defaults = {"name": "test_run", "started_at": t, "ended_at": t + 1.0, "status": SpanStatus.OK}
     defaults.update(kwargs)
     return Run(**defaults)
 
 
 def make_span(run_id: str, **kwargs) -> Span:
     t = time.time()
-    defaults = dict(run_id=run_id, name="test_span", started_at=t, ended_at=t + 0.5, status=SpanStatus.OK)
+    defaults = {
+        "run_id": run_id,
+        "name": "test_span",
+        "started_at": t,
+        "ended_at": t + 0.5,
+        "status": SpanStatus.OK
+    }
     defaults.update(kwargs)
     return Span(**defaults)
 
@@ -88,8 +94,16 @@ def test_delete_run_cascades(storage):
 def test_upsert_and_get_span(storage):
     r = make_run()
     storage.upsert_run(r)
-    s = make_span(r.run_id, name="parse", inputs={"x": 1}, outputs={"y": 2},
-                   model="gpt-4o", tokens_in=100, tokens_out=50, cost_usd=0.00123)
+    s = make_span(
+        r.run_id,
+        name="parse",
+        inputs={"x": 1},
+        outputs={"y": 2},
+        model="gpt-4o",
+        tokens_in=100,
+        tokens_out=50,
+        cost_usd=0.00123,
+    )
     storage.upsert_span(s)
     fetched = storage.get_span(s.span_id)
     assert fetched.name == "parse"
@@ -159,7 +173,7 @@ def test_embeddings_for_run(storage):
 def test_refresh_run_aggregates(storage):
     r = make_run()
     storage.upsert_run(r)
-    for i in range(3):
+    for _i in range(3):
         s = make_span(r.run_id, tokens_in=100, tokens_out=50, cost_usd=0.001)
         storage.upsert_span(s)
     storage.refresh_run_aggregates(r.run_id)

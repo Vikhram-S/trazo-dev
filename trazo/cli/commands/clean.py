@@ -1,6 +1,7 @@
 """
 pw clean — Delete old runs from the database.
 """
+
 from __future__ import annotations
 
 import click
@@ -11,12 +12,24 @@ console = Console()
 
 
 @click.command()
-@click.option("--older-than", default=None, type=int, metavar="DAYS",
-              help="Delete runs older than N days.")
-@click.option("--keep", default=None, type=int, metavar="N",
-              help="Keep only the N most recent runs, delete the rest.")
+@click.option(
+    "--older-than", default=None, type=int, metavar="DAYS", help="Delete runs older than N days."
+)
+@click.option(
+    "--keep",
+    default=None,
+    type=int,
+    metavar="N",
+    help="Keep only the N most recent runs, delete the rest.",
+)
 @click.option("--run", "run_id", default=None, help="Delete a specific run by ID.")
-@click.option("--all", "delete_all", is_flag=True, default=False, help="Delete ALL runs (prompts for confirmation).")
+@click.option(
+    "--all",
+    "delete_all",
+    is_flag=True,
+    default=False,
+    help="Delete ALL runs (prompts for confirmation).",
+)
 @click.option("--yes", is_flag=True, default=False, help="Skip confirmation prompt.")
 @click.option("--db", default=None, help="Path to traces.db.")
 def clean_cmd(
@@ -38,6 +51,7 @@ def clean_cmd(
       pw clean --all --yes          # wipe everything without prompting
     """
     import time
+
     from ...storage import StorageEngine
 
     storage = StorageEngine(db_path=db)

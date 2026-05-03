@@ -4,9 +4,9 @@ Trazo.ui.app
 Lightweight FastAPI web UI for exploring traces visually.
 Served locally — no cloud, no external dependencies beyond FastAPI + Jinja2.
 """
+
 from __future__ import annotations
 
-import json
 import webbrowser
 from pathlib import Path
 from typing import Any
@@ -33,8 +33,10 @@ def start_server(
         import uvicorn  # type: ignore[import]
     except ImportError:
         from rich.console import Console
+
         Console().print(
-            "[red]uvicorn not installed. Run:[/red] [bold cyan]pip install trazo-dev[ui][/bold cyan]"
+            "[red]uvicorn not installed. Run:[/red]\n"
+            "[bold cyan]pip install trazo[ui][/bold cyan]"
         )
         return
 
@@ -42,15 +44,19 @@ def start_server(
     url = f"http://{host}:{port}"
 
     from rich.console import Console
-    Console().print(f"\n[bold cyan]🧵 Trazo UI[/bold cyan]  →  [link={url}]{url}[/link]\n[dim]Press Ctrl+C to stop.[/dim]\n")
+
+    Console().print(
+        f"\n[bold cyan]🧵 Trazo UI[/bold cyan]  →  [link={url}]{url}[/link]\n"
+        "[dim]Press Ctrl+C to stop.[/dim]\n"
+    )
 
     webbrowser.open(url)
     uvicorn.run(app, host=host, port=port, log_level="error")
 
 
-def _build_app(db_path: str | None = None) -> "Any":
-    from ..storage import StorageEngine
+def _build_app(db_path: str | None = None) -> Any:
     from ..differ import diff_runs
+    from ..storage import StorageEngine
 
     storage = StorageEngine(db_path=db_path)
 
@@ -102,10 +108,12 @@ def _build_app(db_path: str | None = None) -> "Any":
         if not run:
             return JSONResponse({"error": "not found"}, status_code=404)
         spans = storage.get_spans_for_run(run_id)
-        return JSONResponse({
-            "run": run.model_dump(),
-            "spans": [s.model_dump() for s in spans],
-        })
+        return JSONResponse(
+            {
+                "run": run.model_dump(),
+                "spans": [s.model_dump() for s in spans],
+            }
+        )
 
     @app.get("/api/diff/{run_a_id}/{run_b_id}")
     async def api_diff(run_a_id: str, run_b_id: str) -> JSONResponse:
@@ -121,11 +129,13 @@ def _build_app(db_path: str | None = None) -> "Any":
         runs = storage.list_runs(limit=10_000)
         total_cost = sum(r.total_cost_usd for r in runs)
         total_tokens = sum(r.total_tokens for r in runs)
-        return JSONResponse({
-            "run_count": len(runs),
-            "total_cost_usd": total_cost,
-            "total_tokens": total_tokens,
-            "db_path": str(storage.db_path),
-        })
+        return JSONResponse(
+            {
+                "run_count": len(runs),
+                "total_cost_usd": total_cost,
+                "total_tokens": total_tokens,
+                "db_path": str(storage.db_path),
+            }
+        )
 
     return app

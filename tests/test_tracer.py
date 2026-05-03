@@ -3,11 +3,10 @@ tests/test_tracer.py
 ~~~~~~~~~~~~~~~~~~~~
 Unit tests for the core tracing system.
 """
+
 from __future__ import annotations
 
 import asyncio
-import tempfile
-import time
 from pathlib import Path
 
 import pytest
@@ -118,10 +117,9 @@ def test_span_context_manager():
 
 def test_nested_spans_parent_child():
     with tz.run("nested") as r:
-        with tz.span("parent") as parent_ctx:
-            parent_id = parent_ctx.span_id
-            with tz.span("child") as child_ctx:
-                child_id = child_ctx.span_id
+        with tz.span("parent"):
+            with tz.span("child"):
+                pass
 
     get_collector().flush()
     spans = {s.name: s for s in get_collector().storage.get_spans_for_run(r.run_id)}
@@ -132,7 +130,7 @@ def test_nested_spans_parent_child():
 
 def test_context_vars_reset_after_span():
     """ContextVars must be properly reset after each span to avoid leakage."""
-    with tz.run("ctx_reset") as r:
+    with tz.run("ctx_reset"):
         with tz.span("a"):
             span_inside = get_current_span()
             assert span_inside is not None

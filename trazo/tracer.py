@@ -19,6 +19,7 @@ Usage:
     async with tz.aspan("async_step") as s:
         ...
 """
+
 from __future__ import annotations
 
 import contextvars
@@ -27,8 +28,9 @@ import inspect
 import time
 import traceback
 import uuid
+from collections.abc import AsyncGenerator, Callable, Generator
 from contextlib import asynccontextmanager, contextmanager
-from typing import Any, AsyncGenerator, Callable, Generator, TypeVar
+from typing import Any, TypeVar
 
 from .collector import get_collector
 from .models import Run, Span, SpanStatus
@@ -161,8 +163,9 @@ def run(
     try:
         yield ctx
         ctx.__exit__(None, None, None)
-    except Exception as exc:
+    except Exception:
         import sys
+
         ctx.__exit__(*sys.exc_info())
         raise
 
@@ -296,6 +299,7 @@ def trace(
         span_name = name or fn.__qualname__
 
         if inspect.iscoroutinefunction(fn):
+
             @functools.wraps(fn)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 inputs: dict[str, Any] = {}
@@ -303,10 +307,7 @@ def trace(
                     sig = inspect.signature(fn)
                     bound = sig.bind(*args, **kwargs)
                     bound.apply_defaults()
-                    inputs = {
-                        k: _safe_serialize(v)
-                        for k, v in bound.arguments.items()
-                    }
+                    inputs = {k: _safe_serialize(v) for k, v in bound.arguments.items()}
                 async with aspan(span_name, inputs=inputs, tags=tags) as s:
                     result = await fn(*args, **kwargs)
                     if capture_output:
@@ -315,6 +316,7 @@ def trace(
 
             return async_wrapper  # type: ignore[return-value]
         else:
+
             @functools.wraps(fn)
             def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 inputs: dict[str, Any] = {}
@@ -322,10 +324,7 @@ def trace(
                     sig = inspect.signature(fn)
                     bound = sig.bind(*args, **kwargs)
                     bound.apply_defaults()
-                    inputs = {
-                        k: _safe_serialize(v)
-                        for k, v in bound.arguments.items()
-                    }
+                    inputs = {k: _safe_serialize(v) for k, v in bound.arguments.items()}
                 with span(span_name, inputs=inputs, tags=tags) as s:
                     result = fn(*args, **kwargs)
                     if capture_output:
@@ -357,15 +356,16 @@ def _safe_serialize(value: Any, max_len: int = 4096) -> Any:
     # For anything else (dataclasses, Pydantic models, etc.)
     try:
         import dataclasses
+
         if dataclasses.is_dataclass(value):
             return dataclasses.asdict(value)
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     try:
         if hasattr(value, "model_dump"):  # Pydantic v2
             return value.model_dump()
         if hasattr(value, "dict"):  # Pydantic v1
             return value.dict()
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     return repr(value)[:max_len]

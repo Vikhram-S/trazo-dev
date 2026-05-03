@@ -1,23 +1,23 @@
-﻿"""
+"""
 Trazo.storage
 ~~~~~~~~~~~~~~~~~
 SQLite-backed storage engine for runs and spans.
 Uses only the Python standard library — zero external dependencies for storage.
 """
+
 from __future__ import annotations
 
 import json
 import sqlite3
 import threading
-import time
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from .models import Run, Span, SpanStatus
 
 # Default storage location: ~/.trazo/traces.db
-_DEFAULT_DB_PATH = Path.home() / ".Trazo" / "traces.db"
+_DEFAULT_DB_PATH = Path.home() / ".trazo" / "traces.db"
 
 
 # ---------------------------------------------------------------------------
@@ -151,9 +151,7 @@ class StorageEngine:
 
     def get_run(self, run_id: str) -> Run | None:
         with self._connection() as conn:
-            row = conn.execute(
-                "SELECT * FROM runs WHERE run_id = ?", (run_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone()
         return _row_to_run(row) if row else None
 
     def list_runs(self, limit: int = 50) -> list[Run]:
@@ -218,9 +216,7 @@ class StorageEngine:
 
     def get_span(self, span_id: str) -> Span | None:
         with self._connection() as conn:
-            row = conn.execute(
-                "SELECT * FROM spans WHERE span_id = ?", (span_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM spans WHERE span_id = ?", (span_id,)).fetchone()
         return _row_to_span(row) if row else None
 
     def get_spans_for_run(self, run_id: str) -> list[Span]:
