@@ -10,7 +10,10 @@ readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
 authors = [
-  { name = "Trazo Contributors", email = "hello@trazo-dev.dev" },
+  { name = "Vikhram S", email = "vikhrams@saveetha.ac.in" },
+]
+maintainers = [
+  { name = "Vikhram S", email = "vikhrams@saveetha.ac.in" },
 ]
 keywords = [
   "llm", "tracing", "observability", "ai-agents", "debugging",
@@ -64,10 +67,10 @@ dev = [
 trazo = "trazo.cli.main:main"
 
 [project.urls]
-Homepage    = "https://github.com/trazo-dev/trazo"
-Repository  = "https://github.com/trazo-dev/trazo"
-Issues      = "https://github.com/trazo-dev/trazo/issues"
-Changelog   = "https://github.com/trazo-dev/trazo/blob/main/CHANGELOG.md"
+Homepage    = "https://github.com/Vikhram-S/trazo-dev"
+Repository  = "https://github.com/Vikhram-S/trazo-dev"
+Issues      = "https://github.com/Vikhram-S/trazo-dev/issues"
+Changelog   = "https://github.com/Vikhram-S/trazo-dev/blob/main/CHANGELOG.md"
 
 # ── Hatch ────────────────────────────────────────────────────────────────────
 [tool.hatch.build.targets.wheel]

@@ -6,12 +6,12 @@
 
 *Know exactly why your agent did what it did — and how it changed.*
 
-[![CI](https://github.com/trazo-dev/trazo/actions/workflows/ci.yml/badge.svg)](https://github.com/trazo-dev/trazo/actions/workflows/ci.yml)
-[![PyPI version](https://badge.fury.io/py/trazo-dev.svg)](https://badge.fury.io/py/trazo-dev)
+[![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
+[![PyPI version](https://badge.fury.io/py/trazo.svg)](https://badge.fury.io/py/trazo)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://static.pepy.tech/badge/trazo-dev/month)](https://pepy.tech/project/trazo-dev)
-[![Discord](https://img.shields.io/discord/000000000?logo=discord&label=Discord)](https://discord.gg/Trazo)
+[![Downloads](https://static.pepy.tech/badge/trazo/month)](https://pepy.tech/project/trazo)
+[![Join Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/4dYs3a3KmK)
 
 </div>
 
@@ -51,10 +51,10 @@ open Datadog ($$$)      →      trazo ui  (local, free, instant)
 ### Install
 
 ```bash
-pip install trazo-dev
+pip install trazo
 
 # For the web UI:
-pip install "trazo-dev[ui]"
+pip install "trazo[ui]"
 ```
 
 ### Instrument in 3 lines
@@ -236,19 +236,19 @@ response = client.chat.completions.create(model="gpt-4o", messages=[...])
 
 ```bash
 # Minimal (CLI + tracing, no web UI)
-pip install trazo-dev
+pip install trazo
 
 # With web UI
-pip install "trazo-dev[ui]"
+pip install "trazo[ui]"
 
 # With real semantic embeddings (better diff quality)
-pip install "trazo-dev[embeddings]"
+pip install "trazo[embeddings]"
 
 # Everything
-pip install "trazo-dev[ui,embeddings]"
+pip install "trazo[ui,embeddings]"
 
 # Development
-pip install "trazo-dev[dev,ui]"
+pip install "trazo[dev,ui]"
 pre-commit install
 ```
 
@@ -338,7 +338,7 @@ def patch_anthropic():
 
 ```bash
 # Expose your traces as an MCP tool
-pip install "trazo-dev[mcp]"   # coming in v0.2
+pip install "trazo[mcp]"   # coming in v0.2
 trazo mcp-serve
 ```
 
@@ -370,7 +370,7 @@ trazo mcp-serve
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ```bash
-git clone https://github.com/trazo-dev/trazo
+git clone https://github.com/Vikhram-S/trazo-dev
 cd Trazo
 pip install -e ".[dev,ui]"
 pre-commit install
@@ -396,13 +396,13 @@ pytest tests/ -v
 
 ## License
 
-MIT © 2026 Trazo Contributors
+MIT © 2026 Vikhram S
 
 ---
 
 <div align="center">
 
-**[⭐ Star on GitHub](https://github.com/trazo-dev/trazo)** · **[📖 Docs](https://trazo-dev.dev)** · **[💬 Discord](https://discord.gg/Trazo)** · **[🐛 Issues](https://github.com/trazo-dev/trazo/issues)**
+**[⭐ Star on GitHub](https://github.com/Vikhram-S/trazo-dev)** · **[📖 Docs](https://github.com/Vikhram-S/trazo-dev)** · **[💬 Discord](https://discord.gg/4dYs3a3KmK)** · **[🐛 Issues](https://github.com/Vikhram-S/trazo-dev/issues)**
 
 *Built with love for everyone debugging LLM agents at 2am.*
 
