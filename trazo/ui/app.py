@@ -35,8 +35,7 @@ def start_server(
         from rich.console import Console
 
         Console().print(
-            "[red]uvicorn not installed. Run:[/red]\n"
-            "[bold cyan]pip install trazo[ui][/bold cyan]"
+            "[red]uvicorn not installed. Run:[/red]\n[bold cyan]pip install trazo[ui][/bold cyan]"
         )
         return
 

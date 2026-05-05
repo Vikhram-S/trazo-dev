@@ -14,7 +14,7 @@ Usage:
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, cast
 
 from ..collector import get_collector
 from ..models import Span, SpanStatus
@@ -47,7 +47,7 @@ def _estimate_cost(model: str, tokens_in: int, tokens_out: int) -> float | None:
 def _extract_text_from_response(response: Any) -> str | None:
     """Extract plain text from an OpenAI chat completion response."""
     try:
-        return response.choices[0].message.content
+        return cast(str | None, response.choices[0].message.content)
     except (AttributeError, IndexError):
         return None
 
@@ -194,6 +194,6 @@ def _serialize_messages(messages: list[Any]) -> list[dict]:
 
 def _safe_finish_reason(response: Any) -> str | None:
     try:
-        return response.choices[0].finish_reason
+        return cast(str | None, response.choices[0].finish_reason)
     except (AttributeError, IndexError):
         return None

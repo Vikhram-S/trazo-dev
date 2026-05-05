@@ -34,7 +34,7 @@ def make_span(run_id: str, **kwargs) -> Span:
         "name": "test_span",
         "started_at": t,
         "ended_at": t + 0.5,
-        "status": SpanStatus.OK
+        "status": SpanStatus.OK,
     }
     defaults.update(kwargs)
     return Span(**defaults)

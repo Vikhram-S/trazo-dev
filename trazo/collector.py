@@ -36,6 +36,7 @@ class TraceCollector:
 
     _instance: TraceCollector | None = None
     _lock: threading.Lock = threading.Lock()
+    _initialized: bool
 
     def __new__(cls) -> TraceCollector:
         with cls._lock:
@@ -46,7 +47,7 @@ class TraceCollector:
         return cls._instance
 
     def __init__(self) -> None:
-        if self._initialized:
+        if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
         self._storage: StorageEngine | None = None

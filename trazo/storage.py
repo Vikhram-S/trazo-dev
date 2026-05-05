@@ -13,6 +13,7 @@ import threading
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import cast
 
 from .models import Run, Span, SpanStatus
 
@@ -101,7 +102,7 @@ class StorageEngine:
             conn = sqlite3.connect(str(self._db_path), check_same_thread=False)
             conn.row_factory = sqlite3.Row
             self._local.conn = conn
-        return self._local.conn
+        return cast(sqlite3.Connection, self._local.conn)
 
     @contextmanager
     def _connection(self) -> Generator[sqlite3.Connection, None, None]:

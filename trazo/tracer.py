@@ -357,7 +357,7 @@ def _safe_serialize(value: Any, max_len: int = 4096) -> Any:
     try:
         import dataclasses
 
-        if dataclasses.is_dataclass(value):
+        if dataclasses.is_dataclass(value) and not isinstance(value, type):
             return dataclasses.asdict(value)
     except Exception:  # noqa: S110
         pass

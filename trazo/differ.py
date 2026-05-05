@@ -19,6 +19,7 @@ import json
 import math
 import time
 from collections import Counter, defaultdict
+from typing import cast
 
 from .models import DiffKind, Run, RunDiff, Span, SpanDiff
 from .storage import StorageEngine
@@ -278,4 +279,4 @@ def embed_span(span: Span) -> list[float] | None:
         embed_span._model = SentenceTransformer("all-MiniLM-L6-v2")  # type: ignore[attr-defined]
 
     embedding = embed_span._model.encode(text, normalize_embeddings=True)  # type: ignore[attr-defined]
-    return embedding.tolist()
+    return cast(list[float], embedding.tolist())

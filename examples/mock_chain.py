@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
         with tz.run(f"rag_pipeline_v{run_num}", metadata={"query_idx": run_num}) as r:
             result = run_rag_pipeline(query, SAMPLE_DOC)
-            console.print(f"  [green]✓[/green] {result['word_count']} words, run=[cyan]{r.run_id[:8]}[/cyan]")
+            console.print(f"  [green]+[/green] {result['word_count']} words, run=[cyan]{r.run_id[:8]}[/cyan]")
 
     # Wait for flush
     from trazo.collector import get_collector

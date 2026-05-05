@@ -10,6 +10,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from ...models import DiffKind, Run
+from ...storage import StorageEngine
+
 console = Console()
 
 
@@ -31,8 +34,6 @@ def diff_cmd(run_a: str, run_b: str, db: str | None, show_identical: bool) -> No
       trazo diff abc123 def456 --show-identical
     """
     from ...differ import diff_runs
-    from ...models import DiffKind
-    from ...storage import StorageEngine
 
     storage = StorageEngine(db_path=db)
 
@@ -155,7 +156,7 @@ def diff_cmd(run_a: str, run_b: str, db: str | None, show_identical: bool) -> No
     )
 
 
-def _resolve_run(storage: object, run_id: str) -> object:
+def _resolve_run(storage: StorageEngine, run_id: str) -> Run:
     runs = storage.list_runs(limit=1000)
     matched = [r for r in runs if r.run_id.startswith(run_id)]
     if not matched:

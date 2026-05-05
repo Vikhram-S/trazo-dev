@@ -130,7 +130,7 @@ def _render_html(run: object, spans: list) -> str:
   <div class="stat">
     <div class="stat-label">Status</div>
     <div class="stat-value" style="color:{
-      'var(--green)' if run_dict['status'] == 'ok' else 'var(--red)'
+        "var(--green)" if run_dict["status"] == "ok" else "var(--red)"
     }">
       {run_dict["status"].upper()}
     </div>
