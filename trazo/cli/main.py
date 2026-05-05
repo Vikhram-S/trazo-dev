@@ -23,14 +23,13 @@ console = Console()
 def cli() -> None:
     """
     \b
-    ██████╗  ██╗    ██╗
-    ██╔══██╗ ██║    ██║
-    ██████╔╝ ██║ █╗ ██║
-    ██╔═══╝  ██║███╗██║
-    ██║      ╚███╔███╔╝
-    ╚═╝       ╚══╝╚══╝
+    ___________ ____  ___   __________ 
+   /_  __/ __ \/   | /   | /___  / __ \
+    / / / /_/ / /| |/ /| |    / / / / /
+   / / / _, _/ ___ / ___ |  / / /_/ / 
+  /_/ /_/ |_/_/  |_/_/  |_/____/\____/ 
 
-    Trazo — Execution tracer & semantic diff for LLM agents.
+    Trazo - Execution tracer & semantic diff for LLM agents.
     """
 
 
