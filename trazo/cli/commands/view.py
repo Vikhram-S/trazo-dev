@@ -11,6 +11,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.tree import Tree
 
+from ...models import Span
 from ...storage import StorageEngine
 
 console = Console()
@@ -168,7 +169,7 @@ def _inspect_run(storage: StorageEngine, run_id: str, show_spans: bool) -> None:
     console.print()
 
 
-def _render_span_tree(spans: list, show_full: bool = False) -> None:
+def _render_span_tree(spans: list[Span], show_full: bool = False) -> None:
     """Render spans as a rich tree, respecting parent-child relationships."""
     from rich.tree import Tree
 
@@ -190,29 +191,22 @@ def _render_span_tree(spans: list, show_full: bool = False) -> None:
         console.print(tree)
 
 
-def _span_label(span: object, show_full: bool) -> str:
-    name = getattr(span, "name", "?")
-    status = getattr(span, "status", None)
-    duration = getattr(span, "duration_ms", None)
-    model = getattr(span, "model", None)
-    tokens_in = getattr(span, "tokens_in", None)
-    tokens_out = getattr(span, "tokens_out", None)
-    cost = getattr(span, "cost_usd", None)
-    error = getattr(span, "error", None)
+def _span_label(span: Span, show_full: bool) -> str:
+    badge = _status_badge(span.status.value if span.status else "?")
+    parts = [f"{badge} [bold]{span.name}[/bold]"]
 
-    badge = _status_badge(status.value if status else "?")
-    parts = [f"{badge} [bold]{name}[/bold]"]
-
-    if model:
-        parts.append(f"[dim cyan]{model}[/dim cyan]")
-    if duration is not None:
-        parts.append(f"[dim]{duration:.0f}ms[/dim]")
-    if tokens_in or tokens_out:
-        parts.append(f"[dim yellow]{(tokens_in or 0) + (tokens_out or 0):,} tok[/dim yellow]")
-    if cost:
-        parts.append(f"[dim green]${cost:.5f}[/dim green]")
-    if error and show_full:
-        parts.append(f"\n  [red]{error[:200]}[/red]")
+    if span.model:
+        parts.append(f"[dim cyan]{span.model}[/dim cyan]")
+    if span.duration_ms is not None:
+        parts.append(f"[dim]{span.duration_ms:.0f}ms[/dim]")
+    if span.tokens_in or span.tokens_out:
+        parts.append(
+            f"[dim yellow]{(span.tokens_in or 0) + (span.tokens_out or 0):,} tok[/dim yellow]"
+        )
+    if span.cost_usd:
+        parts.append(f"[dim green]${span.cost_usd:.5f}[/dim green]")
+    if span.error and show_full:
+        parts.append(f"\n  [red]{span.error[:200]}[/red]")
 
     return " · ".join(parts)
 

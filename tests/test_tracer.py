@@ -76,9 +76,8 @@ def test_trace_captures_exception():
     def fail_func() -> None:
         raise ValueError("intentional error")
 
-    with tz.run("error_test") as r:
-        with pytest.raises(ValueError):
-            fail_func()
+    with tz.run("error_test") as r, pytest.raises(ValueError, match="intentional error"):
+        fail_func()
 
     get_collector().flush()
     spans = get_collector().storage.get_spans_for_run(r.run_id)
@@ -94,13 +93,12 @@ def test_trace_captures_exception():
 
 
 def test_span_context_manager():
-    with tz.run("ctx_test") as r:
-        with tz.span("step_one", inputs={"key": "val"}) as s:
-            s.set_output({"result": 42})
-            s.set_model("gpt-4o")
-            s.set_tokens(100, 50)
-            s.set_cost(0.00123)
-            s.tag("env", "test")
+    with tz.run("ctx_test") as r, tz.span("step_one", inputs={"key": "val"}) as s:
+        s.set_output({"result": 42})
+        s.set_model("gpt-4o")
+        s.set_tokens(100, 50)
+        s.set_cost(0.00123)
+        s.tag("env", "test")
 
     get_collector().flush()
     spans = get_collector().storage.get_spans_for_run(r.run_id)
@@ -116,10 +114,8 @@ def test_span_context_manager():
 
 
 def test_nested_spans_parent_child():
-    with tz.run("nested") as r:
-        with tz.span("parent"):
-            with tz.span("child"):
-                pass
+    with tz.run("nested") as r, tz.span("parent"), tz.span("child"):
+        pass
 
     get_collector().flush()
     spans = {s.name: s for s in get_collector().storage.get_spans_for_run(r.run_id)}

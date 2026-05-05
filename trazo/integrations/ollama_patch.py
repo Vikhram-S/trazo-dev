@@ -98,15 +98,15 @@ def patch_ollama() -> bool:
     patched_achat._tz_patched = True  # type: ignore[attr-defined]
     patched_agenerate._tz_patched = True  # type: ignore[attr-defined]
 
-    Client.chat = patched_chat  # type: ignore[method-assign]
-    Client.generate = patched_generate  # type: ignore[method-assign]
-    AsyncClient.chat = patched_achat  # type: ignore[method-assign]
-    AsyncClient.generate = patched_agenerate  # type: ignore[method-assign]
+    Client.chat = patched_chat
+    Client.generate = patched_generate
+    AsyncClient.chat = patched_achat
+    AsyncClient.generate = patched_agenerate
 
     return True
 
 
-def _create_span(name: str, model: str, inputs: dict) -> Span:
+def _create_span(name: str, model: str, inputs: dict[str, Any]) -> Span:
     active_run = _current_run.get()
     parent_span = _current_span.get()
     return Span(
@@ -128,7 +128,7 @@ def _sync_wrapper(
     self: Any,
     span_name: str,
     model: str,
-    inputs: dict,
+    inputs: dict[str, Any],
     *args: Any,
     **kwargs: Any,
 ) -> Any:
@@ -167,7 +167,7 @@ async def _async_wrapper(
     self: Any,
     span_name: str,
     model: str,
-    inputs: dict,
+    inputs: dict[str, Any],
     *args: Any,
     **kwargs: Any,
 ) -> Any:
@@ -200,7 +200,7 @@ async def _async_wrapper(
         _current_span.reset(token)
 
 
-def _serialize_messages(messages: list[Any]) -> list[dict]:
+def _serialize_messages(messages: list[Any]) -> list[dict[str, Any]]:
     result = []
     for m in messages:
         if isinstance(m, dict):

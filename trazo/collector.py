@@ -12,6 +12,7 @@ Design goals:
 from __future__ import annotations
 
 import atexit
+import contextlib
 import queue
 import threading
 import time
@@ -21,7 +22,7 @@ from .models import Run, Span
 from .storage import StorageEngine
 
 # Sentinel to signal the flush worker to stop
-_STOP = object()
+_STOP: Any = object()
 
 
 class TraceCollector:
@@ -108,26 +109,20 @@ class TraceCollector:
     def emit_span(self, span: Span) -> None:
         if not self._enabled or self._storage is None:
             return
-        try:
+        with contextlib.suppress(queue.Full):
             self._queue.put_nowait(("span", span))
-        except queue.Full:
-            pass  # Drop silently under extreme load
 
     def emit_run(self, run: Run) -> None:
         if not self._enabled or self._storage is None:
             return
-        try:
+        with contextlib.suppress(queue.Full):
             self._queue.put_nowait(("run", run))
-        except queue.Full:
-            pass
 
     def finish_run(self, run_id: str) -> None:
         if not self._enabled or self._storage is None:
             return
-        try:
+        with contextlib.suppress(queue.Full):
             self._queue.put_nowait(("run_finish", run_id))
-        except queue.Full:
-            pass
 
     # ------------------------------------------------------------------
     # Control

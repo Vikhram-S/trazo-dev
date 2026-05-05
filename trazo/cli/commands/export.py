@@ -10,6 +10,8 @@ from pathlib import Path
 import click
 from rich.console import Console
 
+from ...models import Run, Span
+
 console = Console()
 
 
@@ -62,15 +64,15 @@ def export_cmd(run_id: str, fmt: str, out: str | None, db: str | None) -> None:
         console.print(f"[dim]Open with: [cyan]open {target}[/cyan][/dim]")
 
 
-def _render_html(run: object, spans: list) -> str:
+def _render_html(run: Run, spans: list[Span]) -> str:
     """Generate a self-contained HTML report for a run."""
     import datetime
 
-    run_dict = run.model_dump()  # type: ignore[attr-defined]
+    run_dict = run.model_dump()
     spans_data = [s.model_dump() for s in spans]
 
     started = datetime.datetime.fromtimestamp(run_dict["started_at"]).strftime("%Y-%m-%d %H:%M:%S")
-    duration = f"{run.duration_ms:.0f}ms" if run.duration_ms else "—"  # type: ignore[attr-defined]
+    duration = f"{run.duration_ms:.0f}ms" if run.duration_ms else "—"
 
     spans_json = json.dumps(spans_data, indent=2, default=str)
 

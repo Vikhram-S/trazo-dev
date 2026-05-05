@@ -169,8 +169,8 @@ def patch_openai() -> bool:
     patched_create._pw_patched = True  # type: ignore[attr-defined]
     patched_acreate._pw_patched = True  # type: ignore[attr-defined]
 
-    chat_completions_mod.Completions.create = patched_create  # type: ignore[method-assign]
-    chat_completions_mod.AsyncCompletions.create = patched_acreate  # type: ignore[method-assign]
+    chat_completions_mod.Completions.create = patched_create
+    chat_completions_mod.AsyncCompletions.create = patched_acreate
     return True
 
 
@@ -179,7 +179,7 @@ def patch_openai() -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _serialize_messages(messages: list[Any]) -> list[dict]:
+def _serialize_messages(messages: list[Any]) -> list[dict[str, Any]]:
     """Safely serialize OpenAI messages list."""
     result = []
     for m in messages:

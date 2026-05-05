@@ -30,7 +30,7 @@ def start_server(
 ) -> None:
     """Start the Trazo web UI server and open the browser."""
     try:
-        import uvicorn  # type: ignore[import]
+        import uvicorn
     except ImportError:
         from rich.console import Console
 

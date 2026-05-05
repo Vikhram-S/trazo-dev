@@ -4,6 +4,8 @@ trazo replay — Re-execute a span with its original inputs (time-travel replay)
 
 from __future__ import annotations
 
+from typing import Any
+
 import click
 from rich.console import Console
 from rich.panel import Panel
@@ -52,7 +54,7 @@ def replay_cmd(
     replayer = Replayer(storage)
 
     # Parse overrides
-    override_inputs: dict = {}
+    override_inputs: dict[str, Any] = {}
     for item in override:
         if "=" not in item:
             console.print(f"[red]Invalid override '{item}'. Use KEY=VALUE format.[/red]")

@@ -198,7 +198,8 @@ def diff_runs(
                 run_a_output=span_a.output_text(),
             )
         else:
-            assert span_a is not None and span_b is not None
+            assert span_a is not None
+            assert span_b is not None
             sim = _compute_similarity(span_a, span_b)
 
             if sim >= _IDENTICAL_THRESHOLD:
@@ -266,7 +267,7 @@ def embed_span(span: Span) -> list[float] | None:
     Returns None if sentence-transformers is not installed.
     """
     try:
-        from sentence_transformers import SentenceTransformer  # type: ignore[import]
+        from sentence_transformers import SentenceTransformer
     except ImportError:
         return None
 

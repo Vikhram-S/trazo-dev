@@ -8,6 +8,8 @@ import click
 from rich.console import Console
 from rich.prompt import Confirm
 
+from ...models import Run
+
 console = Console()
 
 
@@ -57,7 +59,7 @@ def clean_cmd(
     storage = StorageEngine(db_path=db)
     all_runs = storage.list_runs(limit=100_000)
 
-    to_delete: list = []
+    to_delete: list[Run] = []
 
     if run_id:
         matched = [r for r in all_runs if r.run_id.startswith(run_id)]
