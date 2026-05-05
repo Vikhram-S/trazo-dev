@@ -39,7 +39,6 @@ jobs:
 
       - name: Type check (mypy)
         run: mypy trazo --ignore-missing-imports
-        continue-on-error: true  # non-blocking for now
 
       - name: Run tests
         run: pytest tests/ -v --tb=short --cov=trazo --cov-report=xml
