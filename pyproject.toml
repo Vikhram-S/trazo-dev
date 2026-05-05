@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "trazo"
-version = "0.1.1"
+version = "0.1.2"
 description = "Zero-dependency execution tracer and semantic diff engine for LLM agent pipelines"
 readme = "README.md"
 license = { file = "LICENSE" }

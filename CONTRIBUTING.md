@@ -11,8 +11,8 @@ Thank you for your interest in contributing! Trazo is community-driven and we we
 ### Development Setup
 
 ```bash
-git clone https://github.com/trazo-dev/trazo
-cd Trazo
+git clone https://github.com/Vikhram-S/trazo-dev
+cd trazo
 
 # Install with all dev dependencies
 pip install -e ".[dev,ui]"
@@ -28,7 +28,7 @@ pre-commit install
 pytest tests/ -v
 
 # With coverage
-pytest tests/ --cov=Trazo --cov-report=term-missing
+pytest tests/ --cov=trazo --cov-report=term-missing
 
 # Specific file
 pytest tests/test_tracer.py -v -k "test_trace_decorator"
@@ -50,7 +50,7 @@ trazo ui
 
 Open an issue with:
 - Python version and OS
-- Trazo version (`pw --version`)
+- Trazo version (`trazo --version`)
 - Minimal reproduction script
 - Expected vs actual behavior
 
@@ -67,8 +67,8 @@ Open an issue tagged `enhancement`. Describe:
 2. Write your code and tests
 3. Ensure all checks pass:
    ```bash
-   ruff check Trazo tests
-   ruff format Trazo tests
+   ruff check trazo tests
+   ruff format trazo tests
    pytest tests/ -v
    ```
 4. Open a PR with a clear description
@@ -89,9 +89,9 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 Trazo supports auto-instrumentation of LLM SDKs via monkey-patching. To add a new integration:
 
-1. Create `Trazo/integrations/<provider>_patch.py`
-2. Follow the pattern in `Trazo/integrations/openai_patch.py`
-3. Export from `Trazo/integrations/__init__.py`
+1. Create `trazo/integrations/<provider>_patch.py`
+2. Follow the pattern in `trazo/integrations/openai_patch.py`
+3. Export from `trazo/integrations/__init__.py`
 4. Add a `tz.instrument_<provider>()` function in `trazo/__init__.py`
 5. Test manually via a small script in `examples/` (like `openai_chain.py` or `ollama_agent.py`)
 

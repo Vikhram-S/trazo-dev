@@ -1,409 +1,174 @@
-# 🧵 Trazo
-
 <div align="center">
 
-**Execution tracer and semantic diff engine for LLM agent pipelines.**
+<img src="assets/banner.png" alt="Trazo Banner" width="100%">
 
-*Know exactly why your agent did what it did — and how it changed.*
+# 🧵 Trazo
+
+**Universal Execution Tracer & Semantic Diff Engine for LLM Agent Pipelines.**
 
 [![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/trazo.svg)](https://badge.fury.io/py/trazo)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://static.pepy.tech/badge/trazo/month)](https://pepy.tech/project/trazo)
-[![Join Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/4dYs3a3KmK)
+[![Stars](https://img.shields.io/github/stars/Vikhram-S/trazo-dev?style=social)](https://github.com/Vikhram-S/trazo-dev/stargazers)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/4dYs3a3KmK)
+
+*Know exactly why your agent did what it did — and how it changed.*
+
+[Quickstart](#-quickstart) • [Key Features](#-key-features) • [CLI Reference](#-cli-reference) • [Architecture](#-architecture) • [Contributing](#-contributing)
 
 </div>
 
 ---
 
-## The Problem
+## 🧐 What is Trazo?
 
-You're building an LLM pipeline. It worked yesterday. Today it's producing different answers, costing more, and you have no idea which call changed. You're staring at raw JSON logs and guessing.
+Building LLM agents is easy. Debugging them is hard. When your pipeline behavior shifts, Trazo tells you **why**. 
 
-**Trazo fixes this.**
+Trazo is a local-first, zero-dependency tracing library that captures every step of your agent's execution, tracks costs, and allows you to semantically diff two runs to see exactly what changed in your prompts, models, or outputs.
 
-```
-Before Trazo:              After Trazo:
-─────────────────              ───────────────
-print(response)         →      trazo view abc123
-grep through logs       →      trazo diff abc123 def456
-re-run everything       →      trazo replay abc123 --span xyz
-open Datadog ($$$)      →      trazo ui  (local, free, instant)
-```
+### Before Trazo:
+- `print(response)` spam in your terminal.
+- Grepping through 100MB log files.
+- Re-running expensive pipelines just to see a single intermediate output.
+- Paying $$$ for cloud observability tools just to debug a local script.
 
----
-
-## What Trazo Does
-
-- 🔍 **Traces** every function call in your pipeline with zero boilerplate
-- 📊 **Visualizes** execution as a DAG — see parent/child spans, durations, costs
-- 🔀 **Semantically diffs** two runs — detects *what changed* and *how much*
-- ⏮️ **Replays** any span with its exact original inputs (time-travel debugging)
-- 💰 **Tracks** token counts and USD cost per span, per run
-- 🔒 **Local-first** — all data stays on your machine, zero cloud dependencies
-- ⚡ **Framework-agnostic** — works with OpenAI, Anthropic, raw HTTP, LangChain, any Python
+### After Trazo:
+- 🔍 **Visual DAGs**: See your pipeline execution as a beautiful tree.
+- 🔀 **Semantic Diffs**: Instant comparison of two runs with similarity scores.
+- ⏮️ **Time-Travel Replay**: Re-run any specific step with original inputs.
+- 💰 **Cost Tracking**: Automated token counting and USD cost estimation.
+- 🔒 **100% Local**: No data ever leaves your machine. SQLite powered.
 
 ---
 
-## Quickstart
+## 🚀 Quickstart
 
-### Install
-
+### 1. Install
 ```bash
-pip install trazo
-
-# For the web UI:
 pip install "trazo[ui]"
 ```
 
-### Instrument in 3 lines
-
+### 2. Instrument in 3 Lines
 ```python
 import trazo as tz
 
-tz.init()  # ← once, at startup
-tz.instrument_ollama() # ← 100% local, no API keys!
+tz.init()  # Initialize storage
+tz.instrument_ollama()  # Auto-instrument local models
 
-@tz.trace  # ← on any function
-def call_llm(prompt: str) -> str:
-    # Use ollama, openai, anthropic, or any custom client
-    return ollama.generate(model="phi3", prompt=prompt)["response"]
+@tz.trace  # Trace any function
+def my_agent_step(query: str):
+    # Your logic here...
+    return "Result"
 
-with tz.run("my_pipeline"):
-    result = call_llm("Explain transformers in one sentence")
+with tz.run("my_first_trace"):
+    my_agent_step("How does transformers work?")
 ```
 
-### See what happened
+### 3. See the Magic
+```bash
+trazo view       # List recent runs
+trazo ui         # Launch the visual DAG viewer at http://localhost:7432
+```
+
+<img src="assets/ui_mockup.png" alt="Trazo UI Mockup" width="100%">
+
+---
+
+## ✨ Key Features
+
+### 🔍 Automatic Instrumentation
+Just call `tz.instrument_openai()` or `tz.instrument_ollama()` at the top of your script. Trazo handles the rest—capturing inputs, outputs, tokens, and latency without touching your code.
+
+### 🔀 Semantic Diff Engine
+Compare two versions of your pipeline. Trazo matches spans by name and calculates a similarity score using lightweight n-gram hashing (no ML needed) or real embeddings (optional).
 
 ```bash
-trazo view                    # list all runs
-trazo view abc123             # inspect a specific run
-trazo view abc123 --spans     # full span tree
-trazo diff [id1] [id2]        # semantic diff between runs
-trazo replay abc123           # re-execute with original inputs
-trazo ui                      # open browser DAG viewer
+trazo diff [baseline_id] [current_id]
 ```
+
+### ⏮️ Time-Travel Debugging
+Spotted a failure in a complex chain? Use `trazo replay [span_id]` to re-execute just that specific step with the exact same inputs, or override them to test a fix.
+
+### 📊 Rich Terminal UI
+No browser? No problem. Trazo provides a high-fidelity terminal interface using `rich` for inspecting traces, diffs, and logs directly in your shell.
 
 ---
 
-## Core Features
+## 🛠️ CLI Reference
 
-### `@trazo.trace` — Automatic instrumentation
-
-Decorate any function — sync or async — to capture inputs, outputs, timing, and errors:
-
-```python
-@trazo.trace
-def retrieve_context(query: str, top_k: int = 5) -> list[str]:
-    return vector_db.search(query, k=top_k)
-
-@trazo.trace(name="llm.generate", tags={"tier": "primary"})
-async def async_generate(messages: list[dict]) -> str:
-    response = await openai_client.chat.completions.create(...)
-    return response.choices[0].message.content
-```
-
-### `trazo.span()` — Fine-grained control
-
-Use context managers for manual span control and LLM metadata injection:
-
-```python
-with trazo.run("rag_pipeline") as r:
-    r.tag("experiment", "prompt_v3")
-
-    with trazo.span("retrieve", inputs={"query": q}) as s:
-        docs = vector_db.search(q)
-        s.set_output({"doc_count": len(docs)})
-
-    with trazo.span("generate") as s:
-        s.set_model("gpt-4o")
-        s.set_tokens(tokens_in=1240, tokens_out=380)
-        s.set_cost(0.00412)
-        response = llm.generate(docs, q)
-```
-
-### `trazo diff` — Semantic diff between runs
-
-```
-$ trazo diff abc123 def456
-
-Comparing run_v1 against run_v2
-Overall similarity: 71.3% — Similar with changes
-Cost delta:    +$0.00234
-Token delta:   +312
-Latency delta: +480ms
-
-╭──────────────────────────┬────────────┬────────────┬──────────┬──────────╮
-│ Span                     │ Kind       │ Similarity │ Cost Δ   │ Token Δ  │
-├──────────────────────────┼────────────┼────────────┼──────────┼──────────┤
-│ retrieve_context         │ ≡ identical│ 99.2%      │ —        │ —        │
-│ openai.chat/gpt-4o       │ ≠ diverged │ 54.1%      │ +$0.0021 │ +289     │
-│ extract_answer           │ ≈ similar  │ 78.3%      │ —        │ —        │
-│ new_validation_step      │ + added    │ 0.0%       │ +$0.0002 │ +23      │
-╰──────────────────────────┴────────────┴────────────┴──────────┴──────────╯
-```
-
-### `trazo replay` — Time-travel debugging
-
-Re-execute any span with its exact original inputs, with optional overrides:
-
-```bash
-# Replay with original inputs
-trazo replay abc123def456
-
-# Replay with a different model (A/B test)
-trazo replay abc123def456 -o model=gpt-4o-mini
-
-# Dry-run: print inputs without executing
-trazo replay abc123def456 --dry-run
-```
-
-### `trazo ui` — Browser DAG viewer
-
-```bash
-trazo ui
-# → http://localhost:7432
-```
-
-Visualize your full execution DAG with D3.js. Click any node to inspect inputs/outputs. Compare runs. Track cost trends over time.
-
-### 🦙 Ollama & OpenAI Auto-instrumentation
-
-Zero code changes — just call once at startup to automatically trace models with token counts, execution latency, and cost estimates:
-
-```python
-import trazo as tz
-
-tz.init()
-
-# 100% Local, API-free tracing
-tz.instrument_ollama()
-response = ollama.chat(model="phi3", messages=[...])
-
-# Or cloud providers
-tz.instrument_openai()
-response = client.chat.completions.create(model="gpt-4o", messages=[...])
-```
+| Command | Description |
+|---------|-------------|
+| `trazo view` | List runs or inspect a specific run/span tree |
+| `trazo diff` | Compare two runs and highlight semantic changes |
+| `trazo replay` | Re-run a span with original or modified inputs |
+| `trazo ui` | Start the local web dashboard (FastAPI + D3.js) |
+| `trazo clean` | Prune old traces to save disk space |
+| `trazo export` | Export traces to JSON or interactive HTML |
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    Your Agent Code                              │
-│   @trazo.trace  /  trazo.span()  /  trazo.aspan()                       │
-└───────────────────────┬─────────────────────────────────────────┘
-                        │ emit TraceEvent (non-blocking)
-                        ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              TraceCollector (singleton)                         │
-│  Thread-safe queue → background flush worker                    │
-│  Never blocks your agent's execution path                       │
-└───────────────────┬─────────────────────────────────────────────┘
-                    │ write
-                    ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              StorageEngine (SQLite, WAL mode)                   │
-│  runs / spans / embeddings tables                               │
-│  Zero external dependencies — stdlib only                       │
-└───────┬───────────┴────────────────────────────────────────────-┘
-        │                        │
-        ▼                        ▼
-┌────────────────┐   ┌────────────────────────────────────────────┐
-│  CLI  (trazo)     │   │    Web UI  (FastAPI + D3.js)               │
-│  trazo view       │   │    http://localhost:7432                    │
-│  trazo diff       │   │    DAG viz · Span inspector · Diff panel   │
-│  trazo replay     │   │                                            │
-│  trazo export     │   │                                            │
-└────────────────┘   └────────────────────────────────────────────┘
+Trazo is designed to be **non-blocking** and **local-first**.
+
+```mermaid
+graph TD
+    A[Your Agent Code] -->|Event| B(TraceCollector)
+    B -->|Background Thread| C[SQLite WAL Mode]
+    C --> D[CLI Interface]
+    C --> E[Web UI Dashboard]
+    F[OpenAI / Ollama] -.->|Auto-patch| A
 ```
 
-**Key design decisions:**
-
-| Decision | Rationale |
-|----------|-----------|
-| SQLite storage | Zero setup, works offline, WAL mode for concurrent access |
-| ContextVar propagation | Correct parent-child span linking across async boundaries |
-| TF n-gram similarity | Semantic diff without requiring an ML model |
-| Background flush worker | Tracing never blocks the critical path |
-| Framework-agnostic | Monkey-patch integrations are opt-in, not required |
+- **Storage**: SQLite with WAL mode for high concurrency.
+- **Context**: `contextvars` ensures correct parent-child linking even in complex async/await flows.
+- **Performance**: The background flush worker ensures tracing overhead is negligible (< 1ms).
 
 ---
 
-## Installation Options
+## 🏆 Why Trazo?
 
-```bash
-# Minimal (CLI + tracing, no web UI)
-pip install trazo
-
-# With web UI
-pip install "trazo[ui]"
-
-# With real semantic embeddings (better diff quality)
-pip install "trazo[embeddings]"
-
-# Everything
-pip install "trazo[ui,embeddings]"
-
-# Development
-pip install "trazo[dev,ui]"
-pre-commit install
-```
+| Feature | Trazo | LangSmith | Weights & Biases |
+|---------|-------|-----------|------------------|
+| **Local-first** | ✅ Yes | ❌ No | ❌ No |
+| **Zero Setup** | ✅ Yes | ❌ No | ❌ No |
+| **Semantic Diff** | ✅ Built-in | ❌ Basic | ❌ No |
+| **Cost** | 🆓 Free | 💰 Paid | 💰 Paid |
+| **Privacy** | 🔒 100% | ☁️ Cloud | ☁️ Cloud |
 
 ---
 
-## CLI Reference
+## 🤝 Contributing
 
-```
-trazo view [RUN_ID] [--spans] [--limit N] [--db PATH]
-trazo diff RUN_A RUN_B [--show-identical] [--db PATH]
-trazo replay SPAN_ID [-o KEY=VALUE ...] [--dry-run] [--db PATH]
-trazo export RUN_ID [--format json|html] [-o PATH] [--db PATH]
-trazo clean [--older-than DAYS] [--keep N] [--run ID] [--all] [--yes]
-trazo ui [--host HOST] [--port PORT] [--db PATH]
-```
+We love contributors! Whether it's fixing a bug, adding a new integration (Anthropic, Gemini, etc.), or improving the UI.
 
-Supports short IDs — you never need to type the full UUID.
+1. Fork the repo.
+2. `pip install -e ".[dev,ui]"`
+3. Create your feature branch.
+4. Open a Pull Request.
+
+Check out our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 ---
 
-## Python API Reference
+## 🗺️ Roadmap
 
-```python
-import trazo as tz
-
-# Initialization
-tz.init(db_path=None)
-tz.instrument_ollama()
-tz.instrument_openai()
-
-# Tracing
-@tz.trace                                 # sync decorator
-@tz.trace(name="x", tags={"k": "v"})     # with options
-async def fn(): ...                        # async supported automatically
-
-# Context managers
-with trazo.run("name", metadata={}) as r:    # top-level run
-    r.tag("key", "value")
-
-with trazo.span("name", inputs={}) as s:     # named span
-    s.set_model("gpt-4o")
-    s.set_tokens(100, 50)
-    s.set_cost(0.00123)
-    s.set_output({"result": ...})
-    s.tag("key", "value")
-
-async with trazo.aspan("name") as s:         # async span
-    ...
-
-# Inspection
-trazo.get_current_span()                     # active Span | None
-trazo.get_current_run()                      # active Run | None
-```
-
----
-
-## Extending Trazo
-
-### Custom storage backend
-
-```python
-from trazo.storage import StorageEngine
-from trazo.collector import get_collector
-
-# Use a custom database path
-storage = StorageEngine(db_path="/data/my_project/traces.db")
-get_collector().configure(storage)
-```
-
-### Adding an integration
-
-```python
-# Trazo/integrations/anthropic_patch.py
-from trazo.tracer import _current_span, _current_run
-from trazo.models import Span, SpanStatus
-
-def patch_anthropic():
-    import anthropic
-    original_create = anthropic.resources.Messages.create
-    def patched_create(self, *args, **kwargs):
-        # ... same pattern as openai_patch.py
-        pass
-    anthropic.resources.Messages.create = patched_create
-```
-
-### MCP (Model Context Protocol) server
-
-```bash
-# Expose your traces as an MCP tool
-pip install "trazo[mcp]"   # coming in v0.2
-trazo mcp-serve
-```
-
----
-
-## Roadmap
-
-- [x] Core tracing engine (`@trazo.trace`, `trazo.span()`, `trazo.aspan()`)
-- [x] SQLite storage with WAL mode
-- [x] Semantic diff engine (n-gram TF similarity)
-- [x] Time-travel replay
-- [x] Rich terminal CLI (`trazo view`, `trazo diff`, `trazo replay`, `trazo export`)
-- [x] Web UI with D3.js DAG visualization
-- [x] OpenAI auto-instrumentation
-- [x] CI: Python 3.10-3.12, Windows/macOS/Linux
-- [ ] Anthropic auto-instrumentation
-- [x] Ollama auto-instrumentation
-- [ ] MCP server for Claude Desktop / Cursor integration
-- [ ] LangChain callback integration
-- [ ] Real semantic embeddings via `sentence-transformers`
-- [ ] GitHub Actions diff annotations (fail CI if similarity < threshold)
-- [ ] VS Code extension
-- [ ] `trazo watch` — live terminal dashboard
-
----
-
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-```bash
-git clone https://github.com/Vikhram-S/trazo-dev
-cd Trazo
-pip install -e ".[dev,ui]"
-pre-commit install
-pytest tests/ -v
-```
-
-**Good first issues:** look for the `good first issue` label.
-
----
-
-## Why Trazo Will Reach 1,000 Stars
-
-| Reason | Detail |
-|--------|--------|
-| **Universal pain** | Every team building LLM apps hits the "why did this change" problem |
-| **30-second onboarding** | `pip install` + one decorator = full traces |
-| **No API key needed** | Natively supports Ollama so you can build and trace pipelines completely offline and for free |
-| **Visual demo hook** | The DAG viewer is screenshot-worthy and shareable |
-| **Zero lock-in** | SQLite, MIT license, no cloud, no vendor dependency |
-| **Framework agnostic** | Works with whatever stack you already use |
-
----
-
-## License
-
-MIT © 2026 Vikhram S
+- [x] Core Tracing & SQLite Storage
+- [x] Semantic Diff CLI
+- [x] Interactive DAG Viewer
+- [x] OpenAI & Ollama Integrations
+- [ ] **Anthropic & Google Gemini Integration** (Coming Soon)
+- [ ] **GitHub Actions Integration**: Fail PRs if semantic similarity drops!
+- [ ] **MCP Server Support**: Chat with your traces in Claude Desktop.
 
 ---
 
 <div align="center">
 
-**[⭐ Star on GitHub](https://github.com/Vikhram-S/trazo-dev)** · **[📖 Docs](https://github.com/Vikhram-S/trazo-dev)** · **[💬 Discord](https://discord.gg/4dYs3a3KmK)** · **[🐛 Issues](https://github.com/Vikhram-S/trazo-dev/issues)**
+**[⭐ Star us on GitHub](https://github.com/Vikhram-S/trazo-dev)** · **[💬 Join the Discord](https://discord.gg/4dYs3a3KmK)**
 
-*Built with love for everyone debugging LLM agents at 2am.*
+MIT License © 2026 Vikhram S
 
 </div>
