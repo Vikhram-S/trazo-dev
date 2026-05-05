@@ -21,13 +21,13 @@ console = Console()
 @click.group()
 @click.version_option(package_name="trazo")
 def cli() -> None:
-    """
+    r"""
     \b
-    ___________ ____  ___   __________ 
+    ___________ ____  ___   __________
    /_  __/ __ \/   | /   | /___  / __ \
     / / / /_/ / /| |/ /| |    / / / / /
-   / / / _, _/ ___ / ___ |  / / /_/ / 
-  /_/ /_/ |_/_/  |_/_/  |_/____/\____/ 
+   / / / _, _/ ___ / ___ |  / / /_/ /
+  /_/ /_/ |_/_/  |_/_/  |_/____/\____/
 
     Trazo - Execution tracer & semantic diff for LLM agents.
     """
