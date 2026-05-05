@@ -1,7 +1,3 @@
-<div align="center">
-
-<img src="assets/banner.png" alt="Trazo Banner" width="100%">
-
 # 🧵 Trazo
 
 **Universal Execution Tracer & Semantic Diff Engine for LLM Agent Pipelines.**
