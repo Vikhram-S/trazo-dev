@@ -32,19 +32,27 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -e ".[dev,ui]"
+        run: pip install -e ".[dev,ui,embeddings]"
 
       - name: Lint (ruff)
         run: ruff check trazo tests
+        env:
+          PYTHONPATH: .
 
       - name: Format check (ruff)
         run: ruff format --check trazo tests
+        env:
+          PYTHONPATH: .
 
       - name: Type check (mypy)
         run: mypy trazo --ignore-missing-imports
+        env:
+          PYTHONPATH: .
 
       - name: Run tests
         run: pytest tests/ -v --tb=short --cov=trazo --cov-report=xml
+        env:
+          PYTHONPATH: .
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
