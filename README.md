@@ -6,7 +6,7 @@
 
 *Know exactly why your agent did what it did — and how it changed.*
 
-[![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
+[![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/trazo.svg)](https://badge.fury.io/py/trazo)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
