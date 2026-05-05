@@ -8,9 +8,10 @@
 
 [![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/trazo.svg)](https://badge.fury.io/py/trazo)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python versions](https://img.shields.io/pypi/pyversions/trazo.svg)](https://pypi.org/project/trazo/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://static.pepy.tech/badge/trazo/month)](https://pepy.tech/project/trazo)
+[![Downloads](https://static.pepy.tech/badge/trazo)](https://pepy.tech/project/trazo)
+[![Platforms](https://img.shields.io/badge/platforms-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://pypi.org/project/trazo/)
 [![Stars](https://img.shields.io/github/stars/Vikhram-S/trazo-dev?style=social)](https://github.com/Vikhram-S/trazo-dev/stargazers)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?logo=discord&logoColor=white)](https://discord.gg/4dYs3a3KmK)
 
