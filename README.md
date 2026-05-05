@@ -6,7 +6,7 @@
 
 **Universal Execution Tracer & Semantic Diff Engine for LLM Agent Pipelines.**
 
-[![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
+[![CI](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml/badge.svg)](https://github.com/Vikhram-S/trazo-dev/actions/workflows/ci.yml)
 [![PyPI version](https://badge.fury.io/py/trazo.svg)](https://badge.fury.io/py/trazo)
 [![Python versions](https://img.shields.io/pypi/pyversions/trazo.svg)](https://pypi.org/project/trazo/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
